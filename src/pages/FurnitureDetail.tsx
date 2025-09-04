@@ -21,6 +21,16 @@ const FurnitureDetail = () => {
     poor: '나쁨'
   }
 
+  const locationLabels: Record<string, string> = {
+    insa: '명륜',
+    jagwa: '율전'
+  }
+
+  const getLocationLabel = (value?: string) => {
+    if (!value) return ''
+    return locationLabels[value] ?? value
+  }
+
   useEffect(() => {
     if (id) {
       fetchFurniture()
@@ -104,7 +114,7 @@ const FurnitureDetail = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/furniture')}
@@ -117,7 +127,7 @@ const FurnitureDetail = () => {
             <p className="text-gray-600">가구 정보를 확인하고 수정할 수 있습니다.</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="w-full lg:w-auto grid grid-cols-2 gap-2 lg:flex lg:items-center lg:space-x-2">
           {editing ? (
             <>
               <button
@@ -125,13 +135,13 @@ const FurnitureDetail = () => {
                   setEditing(false)
                   setFormData(furnitureItem)
                 }}
-                className="btn-secondary"
+                className="btn-secondary w-full lg:w-auto"
               >
                 취소
               </button>
               <button
                 onClick={handleSave}
-                className="btn-primary"
+                className="btn-primary w-full lg:w-auto"
               >
                 저장
               </button>
@@ -140,14 +150,14 @@ const FurnitureDetail = () => {
             <>
               <button
                 onClick={() => setEditing(true)}
-                className="btn-secondary flex items-center"
+                className="btn-secondary flex items-center w-full lg:w-auto justify-center"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 수정
               </button>
               <button
                 onClick={handleDelete}
-                className="btn-danger flex items-center"
+                className="btn-danger flex items-center w-full lg:w-auto justify-center"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 삭제
@@ -274,7 +284,7 @@ const FurnitureDetail = () => {
             ) : (
               <div className="flex items-center">
                 <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                <span className="text-gray-900">{furnitureItem.location}</span>
+                <span className="text-gray-900">{getLocationLabel(furnitureItem.location)}</span>
               </div>
             )}
           </div>

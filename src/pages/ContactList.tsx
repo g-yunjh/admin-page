@@ -16,25 +16,33 @@ const ContactList = () => {
 
   const statusLabels = {
     pending: '처리 대기',
-    processing: '처리 중',
     completed: '처리 완료'
   }
 
   const statusColors = {
     pending: 'bg-orange-100 text-orange-800',
-    processing: 'bg-blue-100 text-blue-800',
     completed: 'bg-green-100 text-green-800'
   }
 
   const statusIcons = {
     pending: Clock,
-    processing: AlertCircle,
     completed: CheckCircle
   }
+
+  const normalizeStatus = (value: string): 'pending' | 'completed' =>
+    value === 'completed' ? 'completed' : 'pending'
 
   useEffect(() => {
     fetchContacts()
   }, [currentPage, statusFilter])
+
+  // Sync URL filter -> internal filters (pending/completed)
+  useEffect(() => {
+    const f = searchParams.get('filter')
+    if (f === 'pending' || f === 'completed') {
+      setStatusFilter(f)
+    }
+  }, [searchParams])
 
   const fetchContacts = async () => {
     try {
@@ -107,9 +115,8 @@ const ContactList = () => {
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="">전체</option>
-                  {Object.entries(statusLabels).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
+                  <option value="pending">처리 대기</option>
+                  <option value="completed">처리 완료</option>
                 </select>
               </div>
             </div>
@@ -127,36 +134,36 @@ const ContactList = () => {
           </div>
         ) : (
           contactList.map((item) => {
-            const StatusIcon = statusIcons[item.status]
+            const normalized = normalizeStatus(item.status as any)
+            const StatusIcon = statusIcons[normalized]
             return (
-              <div key={item.id} className="card">
-                <div className="flex items-start justify-between">
+              <div key={item.id} className="card overflow-hidden">
+                <div className="flex items-start justify-between min-w-0">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">{item.subject}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[item.status]}`}>
-                        {statusLabels[item.status]}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[normalized]}`}>
+                        {statusLabels[normalized]}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.message}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2 break-words">{item.message}</p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
                       <span>{item.name}</span>
                       <span>{item.email}</span>
                       <span>{format(new Date(item.created_at), 'yyyy.MM.dd HH:mm', { locale: ko })}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end space-y-2 ml-4">
+                  <div className="flex flex-col items-end space-y-2 ml-4 shrink-0">
                     <div className="flex items-center space-x-1">
                       <StatusIcon className="w-4 h-4" />
                     </div>
                     <div className="flex flex-col space-y-1">
                       <select
-                        value={item.status}
-                        onChange={(e) => handleStatusChange(item.id, e.target.value as any)}
-                        className="text-xs px-2 py-1 border border-gray-300 rounded"
+                        value={normalized}
+                        onChange={(e) => handleStatusChange(item.id, e.target.value as 'pending' | 'completed')}
+                        className="text-xs px-2 py-1 border border-gray-300 rounded whitespace-nowrap"
                       >
                         <option value="pending">대기</option>
-                        <option value="processing">처리중</option>
                         <option value="completed">완료</option>
                       </select>
                     </div>

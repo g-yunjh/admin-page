@@ -1,40 +1,40 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, MessageSquare, TrendingUp, Clock } from 'lucide-react'
+import { Package, MessageSquare, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { furniture } from '../lib/furniture'
 import { contact } from '../lib/contact'
 
 interface DashboardStats {
-  totalFurniture: number
+  sellingFurniture: number
   soldFurniture: number
   pendingContacts: number
-  totalContacts: number
+  completedContacts: number
 }
 
 const Dashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
-    totalFurniture: 0,
+    sellingFurniture: 0,
     soldFurniture: 0,
     pendingContacts: 0,
-    totalContacts: 0
+    completedContacts: 0
   })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [allFurniture, soldFurniture, allContacts, pendingContacts] = await Promise.all([
+        const [allFurniture, soldFurniture, pendingContacts, completedContacts] = await Promise.all([
           furniture.getAll({}, { page: 1, limit: 1 }),
           furniture.getAll({ is_sold: true }, { page: 1, limit: 1 }),
-          contact.getAll({ page: 1, limit: 1 }),
-          contact.getAll({ page: 1, limit: 1 }, 'pending')
+          contact.getAll({ page: 1, limit: 1 }, 'pending'),
+          contact.getAll({ page: 1, limit: 1 }, 'completed')
         ])
 
         setStats({
-          totalFurniture: allFurniture.total,
+          sellingFurniture: Math.max(0, allFurniture.total - soldFurniture.total),
           soldFurniture: soldFurniture.total,
           pendingContacts: pendingContacts.total,
-          totalContacts: allContacts.total
+          completedContacts: completedContacts.total
         })
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error)
@@ -56,11 +56,11 @@ const Dashboard = () => {
 
   const statCards = [
     {
-      title: '전체 가구',
-      value: stats.totalFurniture,
+      title: '판매 중',
+      value: stats.sellingFurniture,
       icon: Package,
       color: 'bg-blue-500',
-      link: '/furniture'
+      link: '/furniture?filter=onsale'
     },
     {
       title: '판매 완료',
@@ -70,18 +70,18 @@ const Dashboard = () => {
       link: '/furniture?filter=sold'
     },
     {
-      title: '전체 문의',
-      value: stats.totalContacts,
-      icon: MessageSquare,
-      color: 'bg-purple-500',
-      link: '/contacts'
-    },
-    {
       title: '처리 대기',
       value: stats.pendingContacts,
       icon: Clock,
       color: 'bg-orange-500',
       link: '/contacts?filter=pending'
+    },
+    {
+      title: '처리 완료',
+      value: stats.completedContacts,
+      icon: CheckCircle,
+      color: 'bg-emerald-500',
+      link: '/contacts?filter=completed'
     }
   ]
 
@@ -89,7 +89,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">대시보드</h2>
-        <p className="text-gray-600">가조가구 관리자 페이지에 오신 것을 환영합니다.</p>
+        <p className="text-gray-600">가져가구 관리자 페이지에 오신 것을 환영합니다.</p>
       </div>
 
       {/* Stats Grid */}

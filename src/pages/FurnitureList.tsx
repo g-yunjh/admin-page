@@ -22,9 +22,29 @@ const FurnitureList = () => {
     poor: '나쁨'
   }
 
+  const locationLabels: Record<string, string> = {
+    insa: '명륜',
+    jagwa: '율전'
+  }
+
+  const getLocationLabel = (value?: string) => {
+    if (!value) return ''
+    return locationLabels[value] ?? value
+  }
+
   useEffect(() => {
     fetchFurniture()
   }, [currentPage, filters])
+
+  // Sync URL filter -> internal filters (onsale/sold)
+  useEffect(() => {
+    const f = searchParams.get('filter')
+    if (f === 'sold') {
+      setFilters((prev) => ({ ...prev, is_sold: true }))
+    } else if (f === 'onsale') {
+      setFilters((prev) => ({ ...prev, is_sold: false }))
+    }
+  }, [searchParams])
 
   const fetchFurniture = async () => {
     try {
@@ -106,7 +126,7 @@ const FurnitureList = () => {
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 gap-4 pt-4 border-t border-gray-200">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">판매 상태</label>
                 <select
@@ -120,27 +140,16 @@ const FurnitureList = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">상품 상태</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">지역</label>
                 <select
                   className="select-field"
-                  value={filters.condition || ''}
-                  onChange={(e) => handleFilterChange('condition', e.target.value || undefined)}
-                >
-                  <option value="">전체</option>
-                  {Object.entries(conditionLabels).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">지역</label>
-                <input
-                  type="text"
-                  placeholder="지역명 입력..."
-                  className="input-field"
                   value={filters.location || ''}
                   onChange={(e) => handleFilterChange('location', e.target.value || undefined)}
-                />
+                >
+                  <option value="">전체</option>
+                  <option value="insa">명륜</option>
+                  <option value="jagwa">율전</option>
+                </select>
               </div>
             </div>
           )}
@@ -157,24 +166,23 @@ const FurnitureList = () => {
           </div>
         ) : (
           furnitureList.map((item) => (
-            <div key={item.id} className="card">
-              <div className="flex items-start space-x-4">
+            <div key={item.id} className="card overflow-hidden">
+              <div className="flex items-start space-x-4 min-w-0">
                 {item.images.length > 0 && (
                   <img
                     src={item.images[0]}
                     alt={item.title}
-                    className="w-20 h-20 object-cover rounded-lg"
+                    className="w-20 h-20 object-cover rounded-lg flex-none"
                   />
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">{item.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.description}</p>
-                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold leading-tight text-gray-900 break-words whitespace-normal">{item.title}</h3>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-500">
                         <span>{item.price.toLocaleString()}원</span>
                         <span>{conditionLabels[item.condition]}</span>
-                        <span>{item.location}</span>
+                        <span>{getLocationLabel(item.location)}</span>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           item.is_sold ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                         }`}>
@@ -182,24 +190,24 @@ const FurnitureList = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex items-center space-x-2 ml-4 shrink-0">
                       <button
                         onClick={() => handleToggleSold(item.id, item.is_sold)}
-                        className={`px-3 py-1 rounded text-xs font-medium ${
+                        className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
                           item.is_sold 
                             ? 'bg-green-100 text-green-800 hover:bg-green-200' 
                             : 'bg-red-100 text-red-800 hover:bg-red-200'
                         }`}
                       >
-                        {item.is_sold ? '판매중으로' : '판매완료로'}
+                        {item.is_sold ? '판매중' : '완료'}
                       </button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-xs text-gray-500">
+                  <div className="flex items-center justify-between mt-4 min-w-0">
+                    <span className="text-xs text-gray-500 truncate">
                       {format(new Date(item.created_at), 'yyyy.MM.dd HH:mm', { locale: ko })}
                     </span>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 shrink-0">
                       <Link
                         to={`/furniture/${item.id}`}
                         className="p-2 text-gray-400 hover:text-primary-600"

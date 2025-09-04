@@ -15,21 +15,21 @@ const ContactDetail = () => {
 
   const statusLabels = {
     pending: '처리 대기',
-    processing: '처리 중',
     completed: '처리 완료'
   }
 
   const statusColors = {
     pending: 'bg-orange-100 text-orange-800',
-    processing: 'bg-blue-100 text-blue-800',
     completed: 'bg-green-100 text-green-800'
   }
 
   const statusIcons = {
     pending: Clock,
-    processing: AlertCircle,
     completed: CheckCircle
   }
+
+  const normalizeStatus = (value: string): 'pending' | 'completed' =>
+    value === 'completed' ? 'completed' : 'pending'
 
   useEffect(() => {
     if (id) {
@@ -121,12 +121,13 @@ const ContactDetail = () => {
     )
   }
 
-  const StatusIcon = statusIcons[contactItem.status]
+  const normalized = normalizeStatus(contactItem.status)
+  const StatusIcon = statusIcons[normalized]
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/contacts')}
@@ -139,18 +140,7 @@ const ContactDetail = () => {
             <p className="text-gray-600">문의 내용을 확인하고 처리합니다.</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <StatusIcon className="w-5 h-5 text-gray-400" />
-          <select
-            value={contactItem.status}
-            onChange={(e) => handleStatusChange(e.target.value as any)}
-            className="select-field"
-          >
-            <option value="pending">처리 대기</option>
-            <option value="processing">처리 중</option>
-            <option value="completed">처리 완료</option>
-          </select>
-        </div>
+        {/* 상단 상태 셀렉터 제거: 하단 빠른 작업으로만 상태 변경 */}
       </div>
 
       {/* Status Badge */}
@@ -165,8 +155,8 @@ const ContactDetail = () => {
               </p>
             </div>
           </div>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[contactItem.status]}`}>
-            {statusLabels[contactItem.status]}
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[normalized]}`}>
+            {statusLabels[normalized]}
           </span>
         </div>
       </div>
@@ -207,36 +197,53 @@ const ContactDetail = () => {
       </div>
 
       {/* Attachments */}
-      {attachments.length > 0 && (
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">첨부파일</h3>
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">첨부파일</h3>
+        {attachments.length === 0 ? (
+          <p className="text-sm text-gray-500">첨부파일이 없습니다.</p>
+        ) : (
           <div className="space-y-3">
-            {attachments.map((attachment) => (
-              <div
-                key={attachment.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <File className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{attachment.file_name}</p>
-                    <p className="text-xs text-gray-500">
-                      {formatFileSize(attachment.file_size)} • {attachment.file_type}
-                    </p>
+            {attachments.map((attachment, idx) => {
+              const publicUrl = storage.getContactAttachmentUrl(attachment.contact_id, attachment.file_path)
+              return (
+                <div
+                  key={attachment.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <File className="w-5 h-5 text-gray-400" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate" title={attachment.file_name}>
+                        파일 {idx + 1}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatFileSize(attachment.file_size)} • {attachment.file_type}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <a
+                      href={publicUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-secondary text-sm px-3 py-2"
+                    >
+                      열기
+                    </a>
+                    <button
+                      onClick={() => handleDownloadAttachment(attachment)}
+                      className="btn-secondary flex items-center text-sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      다운로드
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDownloadAttachment(attachment)}
-                  className="btn-secondary flex items-center text-sm"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  다운로드
-                </button>
-              </div>
-            ))}
+              )
+            })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Quick Actions */}
       <div className="card">
@@ -249,11 +256,11 @@ const ContactDetail = () => {
             <Mail className="w-4 h-4 mr-2" />
             이메일 답장
           </a>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleStatusChange('pending')}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                contactItem.status === 'pending'
+                normalized === 'pending'
                   ? 'bg-orange-100 text-orange-800'
                   : 'bg-gray-100 text-gray-600 hover:bg-orange-50'
               }`}
@@ -261,19 +268,9 @@ const ContactDetail = () => {
               대기
             </button>
             <button
-              onClick={() => handleStatusChange('processing')}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                contactItem.status === 'processing'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-600 hover:bg-blue-50'
-              }`}
-            >
-              처리중
-            </button>
-            <button
               onClick={() => handleStatusChange('completed')}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                contactItem.status === 'completed'
+                normalized === 'completed'
                   ? 'bg-green-100 text-green-800'
                   : 'bg-gray-100 text-gray-600 hover:bg-green-50'
               }`}
