@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Mail, Calendar, Download, File, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Mail, Download, File, Clock, CheckCircle } from 'lucide-react'
 import { contact, type Contact, type ContactAttachment } from '../lib/contact'
 import { storage } from '../lib/storage'
 import { format } from 'date-fns'

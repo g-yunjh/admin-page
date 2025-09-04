@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search, Filter, Plus, Eye, Edit, Trash2, Package } from 'lucide-react'
+import { Search, Filter, Eye, Trash2, Package } from 'lucide-react'
 import { furniture, type Furniture, type FurnitureFilters } from '../lib/furniture'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -14,7 +14,7 @@ const FurnitureList = () => {
   const [filters, setFilters] = useState<FurnitureFilters>({})
   const [showFilters, setShowFilters] = useState(false)
 
-  const conditionLabels = {
+  const conditionLabels: { new: string; like_new: string; good: string; fair: string; poor: string } = {
     new: '새상품',
     like_new: '거의 새것',
     good: '양호',
@@ -59,8 +59,8 @@ const FurnitureList = () => {
     }
   }
 
-  const handleFilterChange = (key: keyof FurnitureFilters, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
+  const handleFilterChange = (key: keyof FurnitureFilters, value: unknown) => {
+    setFilters((prev: FurnitureFilters) => ({ ...prev, [key]: value as any }))
     setCurrentPage(1)
   }
 

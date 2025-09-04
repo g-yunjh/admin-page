@@ -1,4 +1,5 @@
 import { supabase, type Contact, type ContactAttachment } from './supabase'
+export type { Contact, ContactAttachment } from './supabase'
 
 export interface PaginationParams {
   page: number

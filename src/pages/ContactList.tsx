@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search, Filter, MessageSquare, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { Search, Filter, MessageSquare, Clock, CheckCircle } from 'lucide-react'
 import { contact, type Contact } from '../lib/contact'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'

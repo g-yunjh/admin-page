@@ -13,7 +13,7 @@ const FurnitureDetail = () => {
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState<Partial<Furniture>>({})
 
-  const conditionLabels = {
+  const conditionLabels: { new: string; like_new: string; good: string; fair: string; poor: string } = {
     new: '새상품',
     like_new: '거의 새것',
     good: '양호',
@@ -84,8 +84,8 @@ const FurnitureDetail = () => {
     }
   }
 
-  const handleInputChange = (field: keyof Furniture, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const handleInputChange = (field: keyof Furniture, value: unknown) => {
+    setFormData((prev: Partial<Furniture>) => ({ ...prev, [field]: value as any }))
   }
 
   if (loading) {

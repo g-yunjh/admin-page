@@ -1,4 +1,5 @@
 import { supabase, type Furniture } from './supabase'
+export type { Furniture } from './supabase'
 
 export interface FurnitureFilters {
   is_sold?: boolean
@@ -6,6 +7,7 @@ export interface FurnitureFilters {
   condition?: string
   min_price?: number
   max_price?: number
+  title?: string
 }
 
 export interface PaginationParams {
@@ -39,6 +41,10 @@ export const furniture = {
     
     if (filters.condition) {
       query = query.eq('condition', filters.condition)
+    }
+
+    if (filters.title) {
+      query = query.ilike('title', `%${filters.title}%`)
     }
     
     if (filters.min_price !== undefined) {
