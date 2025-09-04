@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 const FurnitureList = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [furnitureList, setFurnitureList] = useState<Furniture[]>([])
   const [loading, setLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(1)
